@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
+import 'quiz_brain.dart';
+
+QuizBrain quizBrain = QuizBrain();
 void main() => runApp(Quizzler());
 
 class Quizzler extends StatelessWidget {
@@ -25,23 +29,61 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Icon> scoreKeeper = [];
+
+  void showPopUp() {
+    Alert(
+        context: context,
+        type: AlertType.success,
+        title: "YOU MADE IT!",
+        desc: "You finished the questions!",
+        buttons: [
+          DialogButton(
+            child: Text(
+              "COOL",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+            onPressed: () => Navigator.pop(context),
+            width: 120,
+          ),
+        ],
+        style: AlertStyle(isOverlayTapDismiss: false, isCloseButton: true))
+        .show();
+  }
+
+  void verifyAswer(bool answer) {
+    setState(() {
+      if (quizBrain.getAnswer() == answer) {
+        scoreKeeper.add(Icon(Icons.done, color: Colors.green));
+      } else {
+        scoreKeeper.add(Icon(Icons.close, color: Colors.red));
+      }
+      quizBrain.nextQuestion();
+
+      if (quizBrain.hasFinished()) {
+        quizBrain.reset();
+        scoreKeeper.clear();
+        showPopUp();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Expanded(
           flex: 5,
           child: Padding(
-            padding: EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(8.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
-                textAlign: TextAlign.center,
+                quizBrain.getQuestionText(),
                 style: TextStyle(
-                  fontSize: 25.0,
                   color: Colors.white,
+                  fontSize: 20,
                 ),
               ),
             ),
@@ -49,42 +91,51 @@ class _QuizPageState extends State<QuizPage> {
         ),
         Expanded(
           child: Padding(
-            padding: EdgeInsets.all(15.0),
+            padding: const EdgeInsets.all(16.0),
             child: FlatButton(
-              textColor: Colors.white,
               color: Colors.green,
+              onPressed: () {
+                verifyAswer(true);
+              },
               child: Text(
                 'True',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20.0,
+                  fontSize: 25,
                 ),
               ),
-              onPressed: () {
-                //The user picked true.
-              },
             ),
           ),
         ),
         Expanded(
           child: Padding(
-            padding: EdgeInsets.all(15.0),
+            padding: const EdgeInsets.all(16.0),
             child: FlatButton(
               color: Colors.red,
+              onPressed: () {
+                verifyAswer(false);
+              },
               child: Text(
                 'False',
                 style: TextStyle(
-                  fontSize: 20.0,
                   color: Colors.white,
+                  fontSize: 25,
                 ),
               ),
-              onPressed: () {
-                //The user picked false.
-              },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 1, 10, 19),
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                height: 30,
+              )
+            ] +
+                scoreKeeper,
+          ),
+        )
       ],
     );
   }
